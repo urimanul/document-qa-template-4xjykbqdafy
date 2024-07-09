@@ -1,5 +1,35 @@
 import streamlit as st
 from openai import OpenAI
+import mysql.connector
+
+# DBへ接続
+conn = mysql.connector.connect(
+    user='smairuser',
+    password='smairuser',
+    host='www.ryhintl.com',
+    database='smair',
+    port=36000
+)
+
+# DBの接続確認
+if not conn.is_connected():
+    raise Exception("MySQLサーバへの接続に失敗しました")
+
+cur = conn.cursor(dictionary=True)  # 取得結果を辞書型で扱う設定
+#cur = conn.cursor()
+
+query__for_fetching = """
+SELECT api_key FROM openai_payload;
+"""
+
+cur.execute(query__for_fetching)
+
+data1 = {'ID':[],'Issue':[],'Status':[],'Priority':[],'Date Submitted':[]}
+for fetched_line in cur.fetchall():
+    openai_api_key = fetched_line['api_key']
+
+cur.close()
+
 
 # Show title and description.
 st.title("📄 Document question answering")
