@@ -1,7 +1,7 @@
 streamlit
 openai
 mysql-connector-python
-langchain-community
+langchain
 PyPDF2
 faiss-cpu
 altair
