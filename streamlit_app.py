@@ -91,6 +91,7 @@ def handle_userinput(user_question):
 
 
 def main():
+    load_dotenv()
     st.set_page_config(page_title="PDF エンベディング",
                        page_icon=":books:")
     st.write(css, unsafe_allow_html=True)
@@ -115,12 +116,12 @@ def main():
     # create conversation chain
     st.session_state.conversation = get_conversation_chain(vectorstore)
 
-    with st.sidebar:
-        st.subheader("PDF ドキュメント")
-        pdf_docs = st.file_uploader(
-            "アップロードするPDFファイルを選択して'アップロード'をクリックして下さい。", accept_multiple_files=True)
-        if st.button("アップロード"):
-            with st.spinner("処理中..."):
+    #with st.sidebar:
+        #st.subheader("PDF ドキュメント")
+        #pdf_docs = st.file_uploader(
+            #"アップロードするPDFファイルを選択して'アップロード'をクリックして下さい。", accept_multiple_files=True)
+        #if st.button("アップロード"):
+            #with st.spinner("処理中..."):
                 # get pdf text
                 #raw_text = get_pdf_text(pdf_docs)
 
@@ -129,11 +130,16 @@ def main():
 
                 # create vector store
                 #vectorstore = get_vectorstore(text_chunks)
-                vectorstore = get_vectorstore()
+                #vectorstore = get_vectorstore()
 
                 # create conversation chain
-                st.session_state.conversation = get_conversation_chain(
-                    vectorstore)
+                #st.session_state.conversation = get_conversation_chain(
+                    #vectorstore)
+                    
+
+
+if __name__ == '__main__':
+    main()
 
 
 
