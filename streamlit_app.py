@@ -38,107 +38,54 @@ for fetched_line in cur.fetchall():
 
 cur.close()
 
-def get_pdf_text(pdf_docs):
-    text = ""
-    for pdf in pdf_docs:
-        pdf_reader = PdfReader(pdf)
-        for page in pdf_reader.pages:
-            text += page.extract_text()
-    return text
+# Show title and description.
+st.title("📄 Document question answering")
+st.write(
+    "Upload a document below and ask a question about it – GPT will answer! "
+    "To use this app, you need to provide an OpenAI API key, which you can get [here](https://platform.openai.com/account/api-keys). "
+)
 
+# Ask user for their OpenAI API key via `st.text_input`.
+# Alternatively, you can store the API key in `./.streamlit/secrets.toml` and access it
+# via `st.secrets`, see https://docs.streamlit.io/develop/concepts/connections/secrets-management
+#openai_api_key = st.text_input("OpenAI API Key", type="password")
 
-def get_text_chunks(text):
-    text_splitter = CharacterTextSplitter(
-        separator="\n",
-        chunk_size=1000,
-        chunk_overlap=200,
-        length_function=len
+if not openai_api_key:
+    st.info("Please add your OpenAI API key to continue.", icon="🗝️")
+else:
+
+    # Create an OpenAI client.
+    client = OpenAI(api_key=openai_api_key)
+
+    # Let the user upload a file via `st.file_uploader`.
+    uploaded_file = st.file_uploader(
+        "Upload a document (.txt or .md)", type=("txt", "md")
     )
-    chunks = text_splitter.split_text(text)
-    return chunks
 
-
-#def get_vectorstore(text_chunks):
-def get_vectorstore():
-    embeddings = OpenAIEmbeddings()
-    vectorstore = FAISS.load_local("./vectorstore", embeddings,allow_dangerous_deserialization=True)
-    return vectorstore
-
-
-def get_conversation_chain(vectorstore):
-    llm = ChatOpenAI()
-    memory = ConversationBufferMemory(
-        memory_key='chat_history', return_messages=True)
-    conversation_chain = ConversationalRetrievalChain.from_llm(
-        llm=llm,
-        retriever=vectorstore.as_retriever(),
-        memory=memory
+    # Ask the user for a question via `st.text_area`.
+    question = st.text_area(
+        "Now ask a question about the document!",
+        placeholder="Can you give me a short summary?",
+        disabled=not uploaded_file,
     )
-    return conversation_chain
 
+    if uploaded_file and question:
 
-def handle_userinput(user_question):
-    response = st.session_state.conversation({'question': user_question})
-    st.session_state.chat_history = response['chat_history']
+        # Process the uploaded file and question.
+        document = uploaded_file.read().decode()
+        messages = [
+            {
+                "role": "user",
+                "content": f"Here's a document: {document} \n\n---\n\n {question}",
+            }
+        ]
 
-    for i, message in enumerate(st.session_state.chat_history):
-        if i % 2 == 0:
-            st.write(user_template.replace(
-                "{{MSG}}", message.content), unsafe_allow_html=True)
-        else:
-            st.write(bot_template.replace(
-                "{{MSG}}", message.content), unsafe_allow_html=True)
+        # Generate an answer using the OpenAI API.
+        stream = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=messages,
+            stream=True,
+        )
 
-
-def main():
-    st.set_page_config(page_title="PDF エンベディング",
-                       page_icon=":books:")
-    st.write(css, unsafe_allow_html=True)
-
-    if "conversation" not in st.session_state:
-        st.session_state.conversation = None
-        #st.session_state.conversation = ""
-    if "chat_history" not in st.session_state:
-        st.session_state.chat_history = None
-        #st.session_state.chat_history = ""
-
-    st.header("PDF エンベディング :books:")
-    user_question = st.text_input("検索したい質問を入力して下さい。:")
-    if user_question:
-        handle_userinput(user_question)
-        #handle_userinput("正職員の人件費時間単価の積算方法について教えて")
-        
-    # create vector store
-    vectorstore = get_vectorstore()
-                #vectorstore = get_vectorstore()
-
-    # create conversation chain
-    st.session_state.conversation = get_conversation_chain(vectorstore)
-
-    #with st.sidebar:
-        #st.subheader("PDF ドキュメント")
-        #pdf_docs = st.file_uploader(
-            #"アップロードするPDFファイルを選択して'アップロード'をクリックして下さい。", accept_multiple_files=True)
-        #if st.button("アップロード"):
-            #with st.spinner("処理中..."):
-                # get pdf text
-                #raw_text = get_pdf_text(pdf_docs)
-
-                # get the text chunks
-                #text_chunks = get_text_chunks(raw_text)
-
-                # create vector store
-                #vectorstore = get_vectorstore(text_chunks)
-                #vectorstore = get_vectorstore()
-
-                # create conversation chain
-                #st.session_state.conversation = get_conversation_chain(
-                    #vectorstore)
-                    
-
-
-#if __name__ == '__main__':
-    #main()
-
-
-
+        # Stream the response to the app using `st.write_stream`.
+        st.write_stream(stream)
