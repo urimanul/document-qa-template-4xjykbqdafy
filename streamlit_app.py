@@ -1,14 +1,14 @@
 import streamlit as st
 import mysql.connector
 from openai import OpenAI
-from PyPDF2 import PdfReader
-from langchain.text_splitter import CharacterTextSplitter
-from langchain.embeddings import OpenAIEmbeddings
-from langchain.vectorstores import FAISS
-from langchain.chat_models import ChatOpenAI
-from langchain.memory import ConversationBufferMemory
-from langchain.chains import ConversationalRetrievalChain
-from htmlTemplates import css, bot_template, user_template
+#from PyPDF2 import PdfReader
+#from langchain.text_splitter import CharacterTextSplitter
+#from langchain.embeddings import OpenAIEmbeddings
+#from langchain.vectorstores import FAISS
+#from langchain.chat_models import ChatOpenAI
+#from langchain.memory import ConversationBufferMemory
+#from langchain.chains import ConversationalRetrievalChain
+#from htmlTemplates import css, bot_template, user_template
 
 # DBへ接続
 conn = mysql.connector.connect(
