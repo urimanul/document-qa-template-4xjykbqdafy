@@ -1,6 +1,6 @@
 import streamlit as st
 import mysql.connector
-#from openai import OpenAI
+from openai import OpenAI
 from PyPDF2 import PdfReader
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.embeddings import OpenAIEmbeddings
